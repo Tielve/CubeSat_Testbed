@@ -1,0 +1,8 @@
+../Core/Src/mpu6050.c:23:6:setMPUFilterBandwidth	1
+../Core/Src/mpu6050.c:30:6:setMPUAccelRange	5
+../Core/Src/mpu6050.c:45:6:setMPUGyroRange	5
+../Core/Src/mpu6050.c:60:9:mpuBegin	3
+../Core/Src/mpu6050.c:83:6:readMPURawAccel	1
+../Core/Src/mpu6050.c:93:6:readMPURawGyro	1
+../Core/Src/mpu6050.c:103:6:readMPUAccel	1
+../Core/Src/mpu6050.c:112:6:readMPUGyro	1
