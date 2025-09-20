@@ -20,7 +20,7 @@
 ../Middlewares/Third_Party/FatFs/src/ff.c:751:6:unlock_fs	0	static
 ../Middlewares/Third_Party/FatFs/src/ff.c:1632:7:ld_clust.isra	0	static
 ../Middlewares/Third_Party/FatFs/src/ff.c:1001:7:get_fat.isra	24	static
-../Middlewares/Third_Party/FatFs/src/ff.c:1470:9:dir_sdi.constprop	16	static
+../Middlewares/Third_Party/FatFs/src/ff.c:1470:9:dir_sdi.constprop	24	static
 ../Middlewares/Third_Party/FatFs/src/ff.c:1271:9:remove_chain	24	static
 ../Middlewares/Third_Party/FatFs/src/ff.c:1351:7:create_chain	24	static
 ../Middlewares/Third_Party/FatFs/src/ff.c:1519:9:dir_next	32	static

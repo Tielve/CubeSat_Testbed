@@ -52,7 +52,7 @@
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:2922:19:HAL_LIN_SendBreak	2
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:2967:23:HAL_UART_GetState	1
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:2983:10:HAL_UART_GetError	1
-../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:3029:19:UART_SetConfig	95
+../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:3029:19:UART_SetConfig	89
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:3293:6:UART_AdvFeatureConfig	10
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:3436:19:UART_WaitOnFlagUntilTimeout	10
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:1120:19:HAL_UART_Transmit	10
@@ -64,7 +64,7 @@
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:556:19:HAL_MultiProcessor_Init	6
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:2825:19:HAL_MultiProcessor_EnableMuteMode	3
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:2845:19:HAL_MultiProcessor_DisableMuteMode	3
-../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:3504:19:UART_Start_Receive_IT	15
+../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:3504:19:UART_Start_Receive_IT	17
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:1362:19:HAL_UART_Receive_IT	7
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:3576:19:UART_Start_Receive_DMA	7
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_uart.c:1473:19:HAL_UART_Receive_DMA	7

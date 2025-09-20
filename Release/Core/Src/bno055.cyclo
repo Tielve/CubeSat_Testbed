@@ -165,7 +165,7 @@
 ../Core/Src/bno055.c:9578:29:bno055_set_remap_y_sign	7
 ../Core/Src/bno055.c:9654:29:bno055_get_remap_z_sign	5
 ../Core/Src/bno055.c:9710:29:bno055_set_remap_z_sign	7
-../Core/Src/bno055.c:9795:29:bno055_read_sic_matrix	7
+../Core/Src/bno055.c:9795:29:bno055_read_sic_matrix	6
 ../Core/Src/bno055.c:9973:29:bno055_write_sic_matrix	24
 ../Core/Src/bno055.c:10312:29:bno055_read_accel_offset	7
 ../Core/Src/bno055.c:10452:29:bno055_write_accel_offset	14

@@ -7,7 +7,7 @@
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:2945:6:HAL_RCCEx_GetPLL2ClockFreq	6
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:3014:6:HAL_RCCEx_GetPLL3ClockFreq	6
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:3082:6:HAL_RCCEx_GetPLL1ClockFreq	6
-../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:1881:10:HAL_RCCEx_GetPeriphCLKFreq	118
+../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:1881:10:HAL_RCCEx_GetPeriphCLKFreq	114
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:3143:10:HAL_RCCEx_GetD1SysClockFreq	1
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:3183:6:HAL_RCCEx_EnableLSECSS	1
 ../Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c:3193:6:HAL_RCCEx_DisableLSECSS	1
