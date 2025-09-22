@@ -23,25 +23,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
   9 .ARM.attributes 0000002e  00000000  00000000  00011084  2**0
                   CONTENTS, READONLY
- 10 .debug_info   0002e100  00000000  00000000  000110b2  2**0
+ 10 .debug_info   0002e0fc  00000000  00000000  000110b2  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 11 .debug_abbrev 00004ca7  00000000  00000000  0003f1b2  2**0
+ 11 .debug_abbrev 00004ca5  00000000  00000000  0003f1ae  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 12 .debug_aranges 00002618  00000000  00000000  00043e60  2**3
+ 12 .debug_aranges 00002618  00000000  00000000  00043e58  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_rnglists 00001e60  00000000  00000000  00046478  2**0
+ 13 .debug_rnglists 00001e60  00000000  00000000  00046470  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .debug_macro  00009cb1  00000000  00000000  000482d8  2**0
+ 14 .debug_macro  00009752  00000000  00000000  000482d0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 15 .debug_line   0002d0e7  00000000  00000000  00051f89  2**0
+ 15 .debug_line   0002cb19  00000000  00000000  00051a22  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_str    0017ec85  00000000  00000000  0007f070  2**0
+ 16 .debug_str    0017ecdc  00000000  00000000  0007e53b  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .comment      00000043  00000000  00000000  001fdcf5  2**0
+ 17 .comment      00000043  00000000  00000000  001fd217  2**0
                   CONTENTS, READONLY
- 18 .debug_frame  0000b114  00000000  00000000  001fdd38  2**2
+ 18 .debug_frame  0000b114  00000000  00000000  001fd25c  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 19 .debug_line_str 00000056  00000000  00000000  00208e4c  2**0
+ 19 .debug_line_str 00000056  00000000  00000000  00208370  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -4757,22 +4757,26 @@ static inline void tca_ch(uint8_t channel) {
  8002c90:	af02      	add	r7, sp, #8
  8002c92:	4603      	mov	r3, r0
  8002c94:	71fb      	strb	r3, [r7, #7]
-  HAL_I2C_Master_Transmit(&hi2c1, (0x70 << 1), &channel, 1, 1000);
+  HAL_I2C_Master_Transmit(&hi2c1, (0x70u << 1), &channel, 1, 100);
  8002c96:	1dfa      	adds	r2, r7, #7
- 8002c98:	f44f 737a 	mov.w	r3, #1000	@ 0x3e8
- 8002c9c:	9300      	str	r3, [sp, #0]
- 8002c9e:	2301      	movs	r3, #1
- 8002ca0:	21e0      	movs	r1, #224	@ 0xe0
- 8002ca2:	4803      	ldr	r0, [pc, #12]	@ (8002cb0 <tca_ch+0x24>)
- 8002ca4:	f001 fe18 	bl	80048d8 <HAL_I2C_Master_Transmit>
+ 8002c98:	2364      	movs	r3, #100	@ 0x64
+ 8002c9a:	9300      	str	r3, [sp, #0]
+ 8002c9c:	2301      	movs	r3, #1
+ 8002c9e:	21e0      	movs	r1, #224	@ 0xe0
+ 8002ca0:	4803      	ldr	r0, [pc, #12]	@ (8002cb0 <tca_ch+0x24>)
+ 8002ca2:	f001 fe19 	bl	80048d8 <HAL_I2C_Master_Transmit>
 }
- 8002ca8:	bf00      	nop
- 8002caa:	3708      	adds	r7, #8
- 8002cac:	46bd      	mov	sp, r7
- 8002cae:	bd80      	pop	{r7, pc}
+ 8002ca6:	bf00      	nop
+ 8002ca8:	3708      	adds	r7, #8
+ 8002caa:	46bd      	mov	sp, r7
+ 8002cac:	bd80      	pop	{r7, pc}
+ 8002cae:	bf00      	nop
  8002cb0:	240000a4 	.word	0x240000a4
 
 08002cb4 <bno055_i2c_read>:
+static inline uint32_t tim_get_arr(TIM_HandleTypeDef *htim) {
+  return __HAL_TIM_GET_AUTORELOAD(htim);
+}
 static inline s8 bno055_i2c_read(uint8_t dev_addr, uint8_t reg_addr,
                                  uint8_t *reg_data, uint8_t sz) {
  8002cb4:	b580      	push	{r7, lr}
@@ -4866,10 +4870,6 @@ static inline s8 bno055_i2c_write(uint8_t dev_addr, uint8_t reg_addr,
  8002d50:	240000a4 	.word	0x240000a4
 
 08002d54 <quat_to_yaw>:
-static inline uint32_t tim_get_arr(TIM_HandleTypeDef *htim) {
-  return __HAL_TIM_GET_AUTORELOAD(htim);
-}
-
 static inline float quat_to_yaw(const float q[4]) {
  8002d54:	b580      	push	{r7, lr}
  8002d56:	b084      	sub	sp, #16
@@ -5893,63 +5893,63 @@ void StartDefaultTask(void *argument)
  80033ea:	f5a3 73e6 	sub.w	r3, r3, #460	@ 0x1cc
  80033ee:	6018      	str	r0, [r3, #0]
   /* USER CODE BEGIN 5 */
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
  80033f0:	2100      	movs	r1, #0
  80033f2:	48c1      	ldr	r0, [pc, #772]	@ (80036f8 <StartDefaultTask+0x318>)
  80033f4:	f005 f8d0 	bl	8008598 <HAL_TIM_PWM_Start>
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
  80033f8:	2104      	movs	r1, #4
  80033fa:	48bf      	ldr	r0, [pc, #764]	@ (80036f8 <StartDefaultTask+0x318>)
  80033fc:	f005 f8cc 	bl	8008598 <HAL_TIM_PWM_Start>
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
  8003400:	2108      	movs	r1, #8
  8003402:	48bd      	ldr	r0, [pc, #756]	@ (80036f8 <StartDefaultTask+0x318>)
  8003404:	f005 f8c8 	bl	8008598 <HAL_TIM_PWM_Start>
-  uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1);
+	  uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1);
  8003408:	4bbb      	ldr	r3, [pc, #748]	@ (80036f8 <StartDefaultTask+0x318>)
  800340a:	681b      	ldr	r3, [r3, #0]
  800340c:	6adb      	ldr	r3, [r3, #44]	@ 0x2c
  800340e:	f8c7 31c8 	str.w	r3, [r7, #456]	@ 0x1c8
-  struct bno055_accel_t accel = {0};
+	  struct bno055_accel_t accel = {0};
  8003412:	f507 73d4 	add.w	r3, r7, #424	@ 0x1a8
  8003416:	2200      	movs	r2, #0
  8003418:	601a      	str	r2, [r3, #0]
  800341a:	809a      	strh	r2, [r3, #4]
-  struct bno055_gyro_t gyro = {0};
+	  struct bno055_gyro_t gyro = {0};
  800341c:	f507 73d0 	add.w	r3, r7, #416	@ 0x1a0
  8003420:	2200      	movs	r2, #0
  8003422:	601a      	str	r2, [r3, #0]
  8003424:	809a      	strh	r2, [r3, #4]
-  struct bno055_mag_t mag = {0};
+	  struct bno055_mag_t mag = {0};
  8003426:	f507 73cc 	add.w	r3, r7, #408	@ 0x198
  800342a:	2200      	movs	r2, #0
  800342c:	601a      	str	r2, [r3, #0]
  800342e:	809a      	strh	r2, [r3, #4]
-  float a[3] = {0};
+	  float a[3] = {0};
  8003430:	f507 73c6 	add.w	r3, r7, #396	@ 0x18c
  8003434:	2200      	movs	r2, #0
  8003436:	601a      	str	r2, [r3, #0]
  8003438:	605a      	str	r2, [r3, #4]
  800343a:	609a      	str	r2, [r3, #8]
-  float g[3] = {0};
+	  float g[3] = {0};
  800343c:	f507 73c0 	add.w	r3, r7, #384	@ 0x180
  8003440:	2200      	movs	r2, #0
  8003442:	601a      	str	r2, [r3, #0]
  8003444:	605a      	str	r2, [r3, #4]
  8003446:	609a      	str	r2, [r3, #8]
-  float m[3] = {0};
+	  float m[3] = {0};
  8003448:	f507 73ba 	add.w	r3, r7, #372	@ 0x174
  800344c:	2200      	movs	r2, #0
  800344e:	601a      	str	r2, [r3, #0]
  8003450:	605a      	str	r2, [r3, #4]
  8003452:	609a      	str	r2, [r3, #8]
-  float P_est[6][6] = {0};
+	  float P_est[6][6] = {0};
  8003454:	f107 03e4 	add.w	r3, r7, #228	@ 0xe4
  8003458:	2290      	movs	r2, #144	@ 0x90
  800345a:	2100      	movs	r1, #0
  800345c:	4618      	mov	r0, r3
  800345e:	f00a faf2 	bl	800da46 <memset>
-  Kalman k = {0};
+	  Kalman k = {0};
  8003462:	f507 73e8 	add.w	r3, r7, #464	@ 0x1d0
  8003466:	f5a3 73d6 	sub.w	r3, r3, #428	@ 0x1ac
  800346a:	4618      	mov	r0, r3
@@ -5957,80 +5957,80 @@ void StartDefaultTask(void *argument)
  800346e:	461a      	mov	r2, r3
  8003470:	2100      	movs	r1, #0
  8003472:	f00a fae8 	bl	800da46 <memset>
-  init_kalman(&k);
+	  init_kalman(&k);
  8003476:	f107 0324 	add.w	r3, r7, #36	@ 0x24
  800347a:	4618      	mov	r0, r3
  800347c:	f7fd fc8c 	bl	8000d98 <init_kalman>
-  const float DUTY_MAX = 0.25f;
+	  const float DUTY_MAX = 0.25f;
  8003480:	f04f 537a 	mov.w	r3, #1048576000	@ 0x3e800000
  8003484:	f8c7 31c4 	str.w	r3, [r7, #452]	@ 0x1c4
-  struct bno055_t bno;
-  bno.dev_addr = BNO_ADDR;
+	  struct bno055_t bno;
+	  bno.dev_addr = BNO_ADDR;
  8003488:	f507 73e8 	add.w	r3, r7, #464	@ 0x1d0
  800348c:	f5a3 73e2 	sub.w	r3, r3, #452	@ 0x1c4
  8003490:	2250      	movs	r2, #80	@ 0x50
  8003492:	725a      	strb	r2, [r3, #9]
-  bno.bus_read = bno055_i2c_read;
+	  bno.bus_read = bno055_i2c_read;
  8003494:	f507 73e8 	add.w	r3, r7, #464	@ 0x1d0
  8003498:	f5a3 73e2 	sub.w	r3, r3, #452	@ 0x1c4
  800349c:	4a97      	ldr	r2, [pc, #604]	@ (80036fc <StartDefaultTask+0x31c>)
  800349e:	611a      	str	r2, [r3, #16]
-  bno.bus_write = bno055_i2c_write;
+	  bno.bus_write = bno055_i2c_write;
  80034a0:	f507 73e8 	add.w	r3, r7, #464	@ 0x1d0
  80034a4:	f5a3 73e2 	sub.w	r3, r3, #452	@ 0x1c4
  80034a8:	4a95      	ldr	r2, [pc, #596]	@ (8003700 <StartDefaultTask+0x320>)
  80034aa:	60da      	str	r2, [r3, #12]
-  bno.delay_msec = osDelay;
+	  bno.delay_msec = osDelay;
  80034ac:	f507 73e8 	add.w	r3, r7, #464	@ 0x1d0
  80034b0:	f5a3 73e2 	sub.w	r3, r3, #452	@ 0x1c4
  80034b4:	4a93      	ldr	r2, [pc, #588]	@ (8003704 <StartDefaultTask+0x324>)
  80034b6:	615a      	str	r2, [r3, #20]
 
-  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
+	  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
  80034b8:	2200      	movs	r2, #0
  80034ba:	2180      	movs	r1, #128	@ 0x80
  80034bc:	4892      	ldr	r0, [pc, #584]	@ (8003708 <StartDefaultTask+0x328>)
  80034be:	f001 f955 	bl	800476c <HAL_GPIO_WritePin>
-  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
+	  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
  80034c2:	2201      	movs	r2, #1
  80034c4:	f44f 7100 	mov.w	r1, #512	@ 0x200
  80034c8:	488f      	ldr	r0, [pc, #572]	@ (8003708 <StartDefaultTask+0x328>)
  80034ca:	f001 f94f 	bl	800476c <HAL_GPIO_WritePin>
 
-  // Change TCA9548A(I2C Mux) to channel 0 for MPU config
-  tca_ch(MPU6050_CH);
+	  // Change TCA9548A(I2C Mux) to channel 0 for MPU config
+	  tca_ch(MPU6050_CH);
  80034ce:	2001      	movs	r0, #1
  80034d0:	f7ff fbdc 	bl	8002c8c <tca_ch>
-  mpuBegin(&hi2c1);
+	  mpuBegin(&hi2c1);
  80034d4:	488d      	ldr	r0, [pc, #564]	@ (800370c <StartDefaultTask+0x32c>)
  80034d6:	f000 fa01 	bl	80038dc <mpuBegin>
 
-  // Change Mux to channel 1 for BNO config
-  tca_ch(BNO055_CH);
+	  // Change Mux to channel 1 for BNO config
+	  tca_ch(BNO055_CH);
  80034da:	2002      	movs	r0, #2
  80034dc:	f7ff fbd6 	bl	8002c8c <tca_ch>
-  bno055_init(&bno);
+	  bno055_init(&bno);
  80034e0:	f107 030c 	add.w	r3, r7, #12
  80034e4:	4618      	mov	r0, r3
  80034e6:	f7fd f8e1 	bl	80006ac <bno055_init>
-  bno055_set_operation_mode(BNO055_OPERATION_MODE_AMG);
+	  bno055_set_operation_mode(BNO055_OPERATION_MODE_AMG);
  80034ea:	2007      	movs	r0, #7
  80034ec:	f7fd fb8c 	bl	8000c08 <bno055_set_operation_mode>
 
-  for (;;) {
-    bno055_read_accel_xyz(&accel);
+	  for (;;) {
+	    bno055_read_accel_xyz(&accel);
  80034f0:	f507 73d4 	add.w	r3, r7, #424	@ 0x1a8
  80034f4:	4618      	mov	r0, r3
  80034f6:	f7fd fa07 	bl	8000908 <bno055_read_accel_xyz>
-    bno055_read_gyro_xyz(&gyro);
+	    bno055_read_gyro_xyz(&gyro);
  80034fa:	f507 73d0 	add.w	r3, r7, #416	@ 0x1a0
  80034fe:	4618      	mov	r0, r3
  8003500:	f7fd fad6 	bl	8000ab0 <bno055_read_gyro_xyz>
-    bno055_read_mag_xyz(&mag);
+	    bno055_read_mag_xyz(&mag);
  8003504:	f507 73cc 	add.w	r3, r7, #408	@ 0x198
  8003508:	4618      	mov	r0, r3
  800350a:	f7fd fa67 	bl	80009dc <bno055_read_mag_xyz>
-    a[0] = (float)accel.x, a[1] = (float)accel.y, a[2] = (float)accel.z;
+	    a[0] = (float)accel.x, a[1] = (float)accel.y, a[2] = (float)accel.z;
  800350e:	f9b7 31a8 	ldrsh.w	r3, [r7, #424]	@ 0x1a8
  8003512:	ee07 3a90 	vmov	s15, r3
  8003516:	eef8 7ae7 	vcvt.f32.s32	s15, s15
@@ -6043,7 +6043,7 @@ void StartDefaultTask(void *argument)
  8003532:	ee07 3a90 	vmov	s15, r3
  8003536:	eef8 7ae7 	vcvt.f32.s32	s15, s15
  800353a:	edc7 7a65 	vstr	s15, [r7, #404]	@ 0x194
-    g[0] = gyro.x, g[1] = gyro.y, g[2] = gyro.z;
+	    g[0] = gyro.x, g[1] = gyro.y, g[2] = gyro.z;
  800353e:	f9b7 31a0 	ldrsh.w	r3, [r7, #416]	@ 0x1a0
  8003542:	ee07 3a90 	vmov	s15, r3
  8003546:	eef8 7ae7 	vcvt.f32.s32	s15, s15
@@ -6056,7 +6056,7 @@ void StartDefaultTask(void *argument)
  8003562:	ee07 3a90 	vmov	s15, r3
  8003566:	eef8 7ae7 	vcvt.f32.s32	s15, s15
  800356a:	edc7 7a62 	vstr	s15, [r7, #392]	@ 0x188
-    m[0] = mag.x, m[1] = mag.y, m[2] = mag.z;
+	    m[0] = mag.x, m[1] = mag.y, m[2] = mag.z;
  800356e:	f9b7 3198 	ldrsh.w	r3, [r7, #408]	@ 0x198
  8003572:	ee07 3a90 	vmov	s15, r3
  8003576:	eef8 7ae7 	vcvt.f32.s32	s15, s15
@@ -6069,32 +6069,32 @@ void StartDefaultTask(void *argument)
  8003592:	ee07 3a90 	vmov	s15, r3
  8003596:	eef8 7ae7 	vcvt.f32.s32	s15, s15
  800359a:	edc7 7a5f 	vstr	s15, [r7, #380]	@ 0x17c
-    kalman_predict(&k, g, P_est);
+	    kalman_predict(&k, g, P_est);
  800359e:	f107 02e4 	add.w	r2, r7, #228	@ 0xe4
  80035a2:	f507 71c0 	add.w	r1, r7, #384	@ 0x180
  80035a6:	f107 0324 	add.w	r3, r7, #36	@ 0x24
  80035aa:	4618      	mov	r0, r3
  80035ac:	f7fd ff7b 	bl	80014a6 <kalman_predict>
-    kalman_correction(&k, a, m, P_est);
+	    kalman_correction(&k, a, m, P_est);
  80035b0:	f107 03e4 	add.w	r3, r7, #228	@ 0xe4
  80035b4:	f507 72ba 	add.w	r2, r7, #372	@ 0x174
  80035b8:	f507 71c6 	add.w	r1, r7, #396	@ 0x18c
  80035bc:	f107 0024 	add.w	r0, r7, #36	@ 0x24
  80035c0:	f7fe fb52 	bl	8001c68 <kalman_correction>
 
-    float psi = quat_to_yaw(k.q);
+	    float psi = quat_to_yaw(k.q);
  80035c4:	f107 0324 	add.w	r3, r7, #36	@ 0x24
  80035c8:	4618      	mov	r0, r3
  80035ca:	f7ff fbc3 	bl	8002d54 <quat_to_yaw>
  80035ce:	ed87 0a70 	vstr	s0, [r7, #448]	@ 0x1c0
-    float epsi = wrap_pi(psi - 1);
+	    float epsi = wrap_pi(psi - 1);
  80035d2:	edd7 7a70 	vldr	s15, [r7, #448]	@ 0x1c0
  80035d6:	eeb7 7a00 	vmov.f32	s14, #112	@ 0x3f800000  1.0
  80035da:	ee77 7ac7 	vsub.f32	s15, s15, s14
  80035de:	eeb0 0a67 	vmov.f32	s0, s15
  80035e2:	f7ff fc01 	bl	8002de8 <wrap_pi>
  80035e6:	ed87 0a6f 	vstr	s0, [r7, #444]	@ 0x1bc
-    float wz = g[2] - k.b[2]; // body yaw rate
+	    float wz = g[2] - k.b[2]; // body yaw rate
  80035ea:	ed97 7a62 	vldr	s14, [r7, #392]	@ 0x188
  80035ee:	f507 73e8 	add.w	r3, r7, #464	@ 0x1d0
  80035f2:	f5a3 73d6 	sub.w	r3, r3, #428	@ 0x1ac
@@ -6102,7 +6102,7 @@ void StartDefaultTask(void *argument)
  80035fa:	ee77 7a67 	vsub.f32	s15, s14, s15
  80035fe:	edc7 7a6e 	vstr	s15, [r7, #440]	@ 0x1b8
 
-    float tau = -.004 * epsi - .004 * wz;
+	    float tau = -.004 * epsi - .004 * wz;
  8003602:	edd7 7a6f 	vldr	s15, [r7, #444]	@ 0x1bc
  8003606:	eeb7 7ae7 	vcvt.f64.f32	d7, s15
  800360a:	ed9f 6b37 	vldr	d6, [pc, #220]	@ 80036e8 <StartDefaultTask+0x308>
@@ -6114,63 +6114,63 @@ void StartDefaultTask(void *argument)
  8003622:	ee36 7b47 	vsub.f64	d7, d6, d7
  8003626:	eef7 7bc7 	vcvt.f32.f64	s15, d7
  800362a:	edc7 7a6d 	vstr	s15, [r7, #436]	@ 0x1b4
-    if (tau > 0) {
+	    if (tau > 0) {
  800362e:	edd7 7a6d 	vldr	s15, [r7, #436]	@ 0x1b4
  8003632:	eef5 7ac0 	vcmpe.f32	s15, #0.0
  8003636:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  800363a:	dd0b      	ble.n	8003654 <StartDefaultTask+0x274>
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
+	      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
  800363c:	2200      	movs	r2, #0
  800363e:	2180      	movs	r1, #128	@ 0x80
  8003640:	4831      	ldr	r0, [pc, #196]	@ (8003708 <StartDefaultTask+0x328>)
  8003642:	f001 f893 	bl	800476c <HAL_GPIO_WritePin>
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
+	      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
  8003646:	2201      	movs	r2, #1
  8003648:	f44f 7100 	mov.w	r1, #512	@ 0x200
  800364c:	482e      	ldr	r0, [pc, #184]	@ (8003708 <StartDefaultTask+0x328>)
  800364e:	f001 f88d 	bl	800476c <HAL_GPIO_WritePin>
  8003652:	e011      	b.n	8003678 <StartDefaultTask+0x298>
-    } else if (tau < 0) {
+	    } else if (tau < 0) {
  8003654:	edd7 7a6d 	vldr	s15, [r7, #436]	@ 0x1b4
  8003658:	eef5 7ac0 	vcmpe.f32	s15, #0.0
  800365c:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  8003660:	d50a      	bpl.n	8003678 <StartDefaultTask+0x298>
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_SET);
+	      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_SET);
  8003662:	2201      	movs	r2, #1
  8003664:	2180      	movs	r1, #128	@ 0x80
  8003666:	4828      	ldr	r0, [pc, #160]	@ (8003708 <StartDefaultTask+0x328>)
  8003668:	f001 f880 	bl	800476c <HAL_GPIO_WritePin>
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_RESET);
+	      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_RESET);
  800366c:	2200      	movs	r2, #0
  800366e:	f44f 7100 	mov.w	r1, #512	@ 0x200
  8003672:	4825      	ldr	r0, [pc, #148]	@ (8003708 <StartDefaultTask+0x328>)
  8003674:	f001 f87a 	bl	800476c <HAL_GPIO_WritePin>
-    }
+	    }
 
-    float duty = fabsf(tau);
+	    float duty = fabsf(tau);
  8003678:	edd7 7a6d 	vldr	s15, [r7, #436]	@ 0x1b4
  800367c:	eef0 7ae7 	vabs.f32	s15, s15
  8003680:	edc7 7a73 	vstr	s15, [r7, #460]	@ 0x1cc
 
-    if (duty < 0.0f)
+	    if (duty < 0.0f)
  8003684:	edd7 7a73 	vldr	s15, [r7, #460]	@ 0x1cc
  8003688:	eef5 7ac0 	vcmpe.f32	s15, #0.0
  800368c:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  8003690:	d503      	bpl.n	800369a <StartDefaultTask+0x2ba>
-      duty = 0.0f;
+	      duty = 0.0f;
  8003692:	f04f 0300 	mov.w	r3, #0
  8003696:	f8c7 31cc 	str.w	r3, [r7, #460]	@ 0x1cc
-    if (duty > DUTY_MAX)
+	    if (duty > DUTY_MAX)
  800369a:	ed97 7a73 	vldr	s14, [r7, #460]	@ 0x1cc
  800369e:	edd7 7a71 	vldr	s15, [r7, #452]	@ 0x1c4
  80036a2:	eeb4 7ae7 	vcmpe.f32	s14, s15
  80036a6:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  80036aa:	dd03      	ble.n	80036b4 <StartDefaultTask+0x2d4>
-      duty = DUTY_MAX;
+	      duty = DUTY_MAX;
  80036ac:	f8d7 31c4 	ldr.w	r3, [r7, #452]	@ 0x1c4
  80036b0:	f8c7 31cc 	str.w	r3, [r7, #460]	@ 0x1cc
 
-    uint32_t pulse = (uint32_t)((arr + 1) * duty);
+	    uint32_t pulse = (uint32_t)((arr + 1) * duty);
  80036b4:	f8d7 31c8 	ldr.w	r3, [r7, #456]	@ 0x1c8
  80036b8:	3301      	adds	r3, #1
  80036ba:	ee07 3a90 	vmov	s15, r3
@@ -6180,15 +6180,15 @@ void StartDefaultTask(void *argument)
  80036ca:	eefc 7ae7 	vcvt.u32.f32	s15, s15
  80036ce:	ee17 3a90 	vmov	r3, s15
  80036d2:	f8c7 31b0 	str.w	r3, [r7, #432]	@ 0x1b0
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pulse);
+	    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pulse);
  80036d6:	4b08      	ldr	r3, [pc, #32]	@ (80036f8 <StartDefaultTask+0x318>)
  80036d8:	681b      	ldr	r3, [r3, #0]
  80036da:	f8d7 21b0 	ldr.w	r2, [r7, #432]	@ 0x1b0
  80036de:	63da      	str	r2, [r3, #60]	@ 0x3c
-    osDelay(100);
- 80036e0:	2064      	movs	r0, #100	@ 0x64
+	    osDelay(2);
+ 80036e0:	2002      	movs	r0, #2
  80036e2:	f007 fbc9 	bl	800ae78 <osDelay>
-  for (;;) {
+	  for (;;) {
  80036e6:	e703      	b.n	80034f0 <StartDefaultTask+0x110>
  80036e8:	d2f1a9fc 	.word	0xd2f1a9fc
  80036ec:	bf70624d 	.word	0xbf70624d

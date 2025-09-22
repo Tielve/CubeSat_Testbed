@@ -38,7 +38,7 @@
 /* USER CODE BEGIN PD */
 #define TCA_ADDR (0x70u << 1)
 #define MPU_ADDR (0x68u << 1)
-#define BNO_ADDR (0x29u << 1)
+#define BNO_ADDR (0x28u << 1)
 #define MPU6050_CH (1u << 0)
 #define BNO055_CH (1u << 1)
 /* USER CODE END PD */
@@ -82,7 +82,10 @@ void StartDefaultTask(void *argument);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 static inline void tca_ch(uint8_t channel) {
-  HAL_I2C_Master_Transmit(&hi2c1, (0x70 << 1), &channel, 1, 1000);
+  HAL_I2C_Master_Transmit(&hi2c1, (0x70u << 1), &channel, 1, 100);
+}
+static inline uint32_t tim_get_arr(TIM_HandleTypeDef *htim) {
+  return __HAL_TIM_GET_AUTORELOAD(htim);
 }
 static inline s8 bno055_i2c_read(uint8_t dev_addr, uint8_t reg_addr,
                                  uint8_t *reg_data, uint8_t sz) {
@@ -101,10 +104,6 @@ static inline s8 bno055_i2c_write(uint8_t dev_addr, uint8_t reg_addr,
   }
   return -1;
 }
-static inline uint32_t tim_get_arr(TIM_HandleTypeDef *htim) {
-  return __HAL_TIM_GET_AUTORELOAD(htim);
-}
-
 static inline float quat_to_yaw(const float q[4]) {
   float s2 = 2 * (q[0] * q[3] + q[1] * q[2]);
   float c2 = 1 - 2 * (q[2] * q[2] + q[3] * q[3]);
@@ -515,71 +514,71 @@ static void MX_GPIO_Init(void)
 void StartDefaultTask(void *argument)
 {
   /* USER CODE BEGIN 5 */
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
-  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
-  uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1);
-  struct bno055_accel_t accel = {0};
-  struct bno055_gyro_t gyro = {0};
-  struct bno055_mag_t mag = {0};
-  float a[3] = {0};
-  float g[3] = {0};
-  float m[3] = {0};
-  float P_est[6][6] = {0};
-  Kalman k = {0};
-  init_kalman(&k);
-  const float DUTY_MAX = 0.25f;
-  struct bno055_t bno;
-  bno.dev_addr = BNO_ADDR;
-  bno.bus_read = bno055_i2c_read;
-  bno.bus_write = bno055_i2c_write;
-  bno.delay_msec = osDelay;
+	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
+	  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
+	  uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1);
+	  struct bno055_accel_t accel = {0};
+	  struct bno055_gyro_t gyro = {0};
+	  struct bno055_mag_t mag = {0};
+	  float a[3] = {0};
+	  float g[3] = {0};
+	  float m[3] = {0};
+	  float P_est[6][6] = {0};
+	  Kalman k = {0};
+	  init_kalman(&k);
+	  const float DUTY_MAX = 0.25f;
+	  struct bno055_t bno;
+	  bno.dev_addr = BNO_ADDR;
+	  bno.bus_read = bno055_i2c_read;
+	  bno.bus_write = bno055_i2c_write;
+	  bno.delay_msec = osDelay;
 
-  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
+	  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
+	  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
 
-  // Change TCA9548A(I2C Mux) to channel 0 for MPU config
-  tca_ch(MPU6050_CH);
-  mpuBegin(&hi2c1);
+	  // Change TCA9548A(I2C Mux) to channel 0 for MPU config
+	  tca_ch(MPU6050_CH);
+	  mpuBegin(&hi2c1);
 
-  // Change Mux to channel 1 for BNO config
-  tca_ch(BNO055_CH);
-  bno055_init(&bno);
-  bno055_set_operation_mode(BNO055_OPERATION_MODE_AMG);
+	  // Change Mux to channel 1 for BNO config
+	  tca_ch(BNO055_CH);
+	  bno055_init(&bno);
+	  bno055_set_operation_mode(BNO055_OPERATION_MODE_AMG);
 
-  for (;;) {
-    bno055_read_accel_xyz(&accel);
-    bno055_read_gyro_xyz(&gyro);
-    bno055_read_mag_xyz(&mag);
-    a[0] = (float)accel.x, a[1] = (float)accel.y, a[2] = (float)accel.z;
-    g[0] = gyro.x, g[1] = gyro.y, g[2] = gyro.z;
-    m[0] = mag.x, m[1] = mag.y, m[2] = mag.z;
-    kalman_predict(&k, g, P_est);
-    kalman_correction(&k, a, m, P_est);
+	  for (;;) {
+	    bno055_read_accel_xyz(&accel);
+	    bno055_read_gyro_xyz(&gyro);
+	    bno055_read_mag_xyz(&mag);
+	    a[0] = (float)accel.x, a[1] = (float)accel.y, a[2] = (float)accel.z;
+	    g[0] = gyro.x, g[1] = gyro.y, g[2] = gyro.z;
+	    m[0] = mag.x, m[1] = mag.y, m[2] = mag.z;
+	    kalman_predict(&k, g, P_est);
+	    kalman_correction(&k, a, m, P_est);
 
-    float psi = quat_to_yaw(k.q);
-    float epsi = wrap_pi(psi - 1);
-    float wz = g[2] - k.b[2]; // body yaw rate
+	    float psi = quat_to_yaw(k.q);
+	    float epsi = wrap_pi(psi - 1);
+	    float wz = g[2] - k.b[2]; // body yaw rate
 
-    float tau = -.004 * epsi - .004 * wz;
-    if (tau > 0) {
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
-    } else if (tau < 0) {
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_RESET);
-    }
+	    float tau = -.004 * epsi - .004 * wz;
+	    if (tau > 0) {
+	      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
+	      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
+	    } else if (tau < 0) {
+	      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_SET);
+	      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_RESET);
+	    }
 
-    float duty = fabsf(tau);
+	    float duty = fabsf(tau);
 
-    if (duty < 0.0f)
-      duty = 0.0f;
-    if (duty > DUTY_MAX)
-      duty = DUTY_MAX;
+	    if (duty < 0.0f)
+	      duty = 0.0f;
+	    if (duty > DUTY_MAX)
+	      duty = DUTY_MAX;
 
-    uint32_t pulse = (uint32_t)((arr + 1) * duty);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pulse);
-    osDelay(100);
+	    uint32_t pulse = (uint32_t)((arr + 1) * duty);
+	    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pulse);
+	    osDelay(2);
   }
   /* USER CODE END 5 */
 }

@@ -64,6 +64,7 @@
 static struct bno055_t *p_bno055;
 
 /*   LOCAL FUNCTIONS    */
+
 /*!
  *  @brief
  *  This API is used for initialize
