@@ -1,14 +1,12 @@
 #include "kalman.h"
 
 void init_kalman(Kalman *k) {
-  printf("here among us");
   memset(k->q, 0, sizeof(k->q));
   k->q[0] = 1;
   k->q[1] = 0;
   k->q[2] = 0;
   k->q[3] = 0;
 
-  printf("here lkllad");
   memset(k->b, 0, sizeof(k->b));
   k->b[0] = .005f;
   k->b[1] = .005f;
@@ -119,7 +117,7 @@ void cholesky(float A[6][6], float B[6][6]) {
 }
 
 void kalman_predict(Kalman *k, float g[3], float P_est[6][6]) {
-  float theta = 1;
+  float theta = 0;
   float ug[3];
   // Remove bias from gyro readings
   ug[0] = g[0] - k->b[0];
@@ -129,6 +127,7 @@ void kalman_predict(Kalman *k, float g[3], float P_est[6][6]) {
   // Normalize gyro vector
   float mag_g = magnitude(ug);
   if (mag_g == 0) {
+    theta = 0;
     ug[0] = 1;
     ug[1] = 1;
     ug[2] = 1;

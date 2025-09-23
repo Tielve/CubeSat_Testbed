@@ -12,4 +12,4 @@
 ../Core/Src/kalman.c:96:6:mat_sub6	20	static
 ../Core/Src/kalman.c:104:6:cholesky	48	static
 ../Core/Src/kalman.c:121:6:kalman_predict	520	static
-../Core/Src/kalman.c:192:6:kalman_correction	2056	static
+../Core/Src/kalman.c:193:6:kalman_correction	2056	static
