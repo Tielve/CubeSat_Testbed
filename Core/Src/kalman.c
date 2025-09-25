@@ -1,24 +1,27 @@
 #include "kalman.h"
 
 void init_kalman(Kalman *k) {
+  // Start with identity
   memset(k->q, 0, sizeof(k->q));
   k->q[0] = 1;
   k->q[1] = 0;
   k->q[2] = 0;
   k->q[3] = 0;
 
+  // Gyro bias
   memset(k->b, 0, sizeof(k->b));
   k->b[0] = .005f;
   k->b[1] = .005f;
   k->b[2] = .005f;
 
+  // Populate P with covariances
   memset(k->P, 0, sizeof(k->P));
-
   for (int i = 0; i < 3; i++) {
     k->P[i][i] = .1745f * .1745f;
     k->P[i + 3][i + 3] = .00873f * .00873f;
   }
 
+  // Set noise and dt
   k->noise_g = 0.02f;
   k->bias_g = 0.002f;
   k->noise_a = 0.02f;
@@ -204,10 +207,10 @@ void kalman_correction(Kalman *k, float a[3], float m[3], float P_est[6][6]) {
   float gw[3] = {0, 0, -1};
   float mw[3] = {1, 0, 0};
 
+  // Calculate residual
   float r[6] = {a[0] - Rq[0][2] * gw[0], a[1] - Rq[1][2] * gw[1],
-                a[2] - Rq[2][2] * gw[2], // Accelerometer meas - pred
-                m[0] - Rq[0][0],         m[1] - Rq[0][1],
-                m[2] - Rq[0][2]}; // Magnetometer meas - pred
+                a[2] - Rq[2][2] * gw[2], m[0] - Rq[0][0],
+                m[1] - Rq[0][1],         m[2] - Rq[0][2]};
   float s_gw[3][3] = {0};
   float s_mw[3][3] = {0};
   skew(gw, s_gw);
@@ -217,6 +220,7 @@ void kalman_correction(Kalman *k, float a[3], float m[3], float P_est[6][6]) {
   mat_mul3(Rq, s_gw, Rgw);
   mat_mul3(Rq, s_mw, Rmw);
 
+  // Find measurement Jacobian
   float H[6][6] = {0}; // Set H to zero
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
@@ -233,9 +237,11 @@ void kalman_correction(Kalman *k, float a[3], float m[3], float P_est[6][6]) {
   float Ht[6][6] = {0};
   transpose6(H, Ht);
 
+  // Find intermediate/covariance projected onto measurement Jacobian
   float U[6][6] = {0};
   mat_mul6(P_est, Ht, U);
 
+  // Start solving for K with S, and Cholesky decomp
   float S[6][6] = {0};
   mat_mul6(H, U, S);
   mat_add6(S, noise_R, S);
@@ -279,10 +285,14 @@ void kalman_correction(Kalman *k, float a[3], float m[3], float P_est[6][6]) {
     dx[i] = s;
   }
 
+  // delta theta and delta bias
   float dth[3] = {dx[0], dx[1], dx[2]};
   float db[3] = {dx[3], dx[4], dx[5]};
 
+  // Find delta quaternion using delta theta
   float dq[4] = {1, 0.5f * dth[0], 0.5f * dth[1], 0.5f * dth[2]};
+
+  // Find new quaternion at time step k
   float qk[4];
   qk[0] = (k->q[0] * dq[0]) - (dq[1] * k->q[1]) - (dq[2] * k->q[2]) -
           (dq[3] * k->q[3]);
@@ -293,6 +303,7 @@ void kalman_correction(Kalman *k, float a[3], float m[3], float P_est[6][6]) {
   qk[3] = (dq[0] * k->q[3]) + (dq[1] * k->q[2]) - (dq[2] * k->q[1]) +
           (dq[3] * k->q[0]);
 
+  // Normalize qk
   float mag_q = magnitudeq(qk);
   mag_q = 1 / mag_q;
   k->q[0] = qk[0] * mag_q;
@@ -300,16 +311,16 @@ void kalman_correction(Kalman *k, float a[3], float m[3], float P_est[6][6]) {
   k->q[2] = qk[2] * mag_q;
   k->q[3] = qk[3] * mag_q;
 
+  // Add/Subtract Bias
   k->b[0] += db[0];
   k->b[1] += db[1];
   k->b[2] += db[2];
 
+  // Find and assign new covariance matrix P
   float Kt[6][6], UKt[6][6], P_new[6][6];
-  ;
   transpose6(K, Kt);
   mat_mul6(U, Kt, UKt);
   mat_sub6(P_est, UKt, P_new);
-
   for (int i = 0; i < 6; i++) {
     for (int j = 0; j < 6; j++) {
       k->P[i][j] = P_new[i][j];
