@@ -28,6 +28,21 @@ void init_kalman(Kalman *k) {
   k->noise_m = 0.05f;
   k->dt = 0.002f;
 }
+void quat_conj(float q[4], float qc[4]) {
+  // Since q is always a unit quat the conjugate is just the direction reversed.
+  qc[0] = q[0];
+  qc[1] = -q[1];
+  qc[2] = -q[2];
+  qc[3] = -q[3];
+}
+
+void quat_mul(const float a[4], const float b[4], float r[4]) {
+  r[0] = a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3];
+  r[1] = a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2];
+  r[2] = a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1];
+  r[3] = a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0];
+}
+
 void vec_cross(float v1[3], float v2[3], float res[3]) {
   res[0] = v1[1] * v2[2] - v1[2] * v2[1];
   res[1] = v1[2] * v2[0] - v1[0] * v2[2];
@@ -151,14 +166,7 @@ void kalman_predict(Kalman *k, float g[3], float P_est[6][6]) {
 
   // Compute and normalize qk+1
   float qk[4];
-  qk[0] = (k->q[0] * dq[0]) - (dq[1] * k->q[1]) - (dq[2] * k->q[2]) -
-          (dq[3] * k->q[3]);
-  qk[1] = (dq[0] * k->q[1]) + (dq[1] * k->q[0]) + (dq[2] * k->q[3]) -
-          (dq[3] * k->q[2]);
-  qk[2] = (dq[0] * k->q[2]) - (dq[1] * k->q[3]) + (dq[2] * k->q[0]) +
-          (dq[3] * k->q[1]);
-  qk[3] = (dq[0] * k->q[3]) + (dq[1] * k->q[2]) - (dq[2] * k->q[1]) +
-          (dq[3] * k->q[0]);
+  quat_mul(dq, k->q, qk);
 
   float mag_q = magnitudeq(qk);
   mag_q = 1 / mag_q;
@@ -294,14 +302,7 @@ void kalman_correction(Kalman *k, float a[3], float m[3], float P_est[6][6]) {
 
   // Find new quaternion at time step k
   float qk[4];
-  qk[0] = (k->q[0] * dq[0]) - (dq[1] * k->q[1]) - (dq[2] * k->q[2]) -
-          (dq[3] * k->q[3]);
-  qk[1] = (dq[0] * k->q[1]) + (dq[1] * k->q[0]) + (dq[2] * k->q[3]) -
-          (dq[3] * k->q[2]);
-  qk[2] = (dq[0] * k->q[2]) - (dq[1] * k->q[3]) + (dq[2] * k->q[0]) +
-          (dq[3] * k->q[1]);
-  qk[3] = (dq[0] * k->q[3]) + (dq[1] * k->q[2]) - (dq[2] * k->q[1]) +
-          (dq[3] * k->q[0]);
+  quat_mul(dq, k->q, qk);
 
   // Normalize qk
   float mag_q = magnitudeq(qk);

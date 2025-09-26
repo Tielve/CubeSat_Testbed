@@ -31,7 +31,12 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+typedef struct {
+  float cpr;
+  float dt;
+  int last;
+  float w;
+} w_enc;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -139,6 +144,27 @@ static inline float wrap_pi(float a) {
   while (a > M_PI)
     a -= 2.0f * M_PI;
   return a;
+}
+
+static inline void attitude_error(float q[4], float target_q[4], float error[3],
+                                  float tau[3], float g[3], float Kp,
+                                  float Kd) {
+  float qc[4], qe[4];
+  quat_conj(q, qc);
+  quat_mul(qd, qc, qe);
+  if (qe[0] < 0) {
+    qe[0] = -qe[0];
+    qe[1] = -qe[1];
+    qe[2] = -qe[2];
+    qe[3] = -qe[3];
+  }
+  e[0] = 2.0f * qe[1];
+  e[1] = 2.0f * qe[2];
+  e[2] = 2.0f * qe[3];
+
+  tau[0] = -Kp * e[0] - Kd * w[0];
+  tau[1] = -Kp * e[1] - Kd * w[1];
+  tau[2] = -Kp * e[2] - Kd * w[2];
 }
 /* USER CODE END 0 */
 
@@ -514,27 +540,34 @@ static void MX_GPIO_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument) {
   /* USER CODE BEGIN 5 */
+  // Start PWM and get values for duty
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1);
   const float DUTY_MAX = 0.25f;
 
+  // IMU data and Attitude control variables
   float a[3] = {0};
   float g[3] = {0};
   float m[3] = {0};
+  float tau[3];
+  float error[3];
+  float Kp = 0.005f;
+  float Kd = 0.005f;
+
+  // Kalman Filter
+  float target_q[4] = {1, 0, 0, 0};
   float P_est[6][6] = {0};
   Kalman k = {0};
   init_kalman(&k);
 
+  // Set up BNO055 9-DOF IMU
   struct bno055_t bno;
   bno.dev_addr = BNO_ADDR;
   bno.bus_read = bno055_i2c_read;
   bno.bus_write = bno055_i2c_write;
   bno.delay_msec = osDelay;
-
-  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
-  HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
 
   // Change TCA9548A(I2C Mux) to channel 0 for MPU config
   tca_ch(MPU6050_CH);
@@ -543,32 +576,14 @@ void StartDefaultTask(void *argument) {
   // Change Mux to channel 1 for BNO config
   tca_ch(BNO055_CH);
   bno055_init(&bno);
-  bno055_set_operation_mode(BNO055_OPERATION_MODE_AMG);
+  bno055_set_operation_mode(BNO055_OPERATION_MODE_AMG); // Get Raw A/M/G data
 
   for (;;) {
     IMU(g, m, a);
     kalman_predict(&k, g, P_est);
     kalman_correction(&k, a, m, P_est);
-
-    float psi = quat_to_yaw(k.q);
-    float epsi = wrap_pi(psi - 1);
-    float wz = g[2] - k.b[2];
-
-    float tau = -.004 * epsi - .004 * wz;
-    if (tau > 0) {
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_RESET);
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET);
-    } else if (tau < 0) {
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_7, GPIO_PIN_SET);
-      HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_RESET);
-    }
-
-    float duty = fabsf(tau);
-
-    if (duty < 0.0f)
-      duty = 0.0f;
-    if (duty > DUTY_MAX)
-      duty = DUTY_MAX;
+    g[0] = g[0] - k.b[0], g[1] = g[1] - k.b[1], g[2] = g[2] - k.b[2];
+    attitude_control(k.q, target_q, error, tau, g, Kp, Kd);
 
     uint32_t pulse = (uint32_t)((arr + 1) * duty);
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pulse);
