@@ -32,11 +32,25 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 typedef struct {
+  // Variables for PI
+  float integ;
+  float Kp_w;
+  float Ki_w;
+  float duty_prev;
+
+  // Encoder variables
   float cpr;
   float dt;
   int last;
   float w;
-} w_enc;
+
+  // Pins for motor driver
+  GPIO_TypeDef *port1;
+  uint16_t pin1;
+  GPIO_TypeDef *port2;
+  uint16_t pin2;
+  int ch;
+} wheel_t;
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -46,6 +60,8 @@ typedef struct {
 #define BNO_ADDR (0x28u << 1)
 #define MPU6050_CH (1u << 0)
 #define BNO055_CH (1u << 1)
+#define DUTY_MAX 0.25f
+#define DUTY_SLEW 0.01f
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -165,6 +181,55 @@ static inline void attitude_error(float q[4], float target_q[4], float error[3],
   tau[0] = -Kp * e[0] - Kd * w[0];
   tau[1] = -Kp * e[1] - Kd * w[1];
   tau[2] = -Kp * e[2] - Kd * w[2];
+}
+
+static inline void wheel_speed(wheel_t *wheel, int enc_count) {
+  int dcnt = enc_count - wheel->last;
+  wheel->last = enc_count;
+  float rev = (float)dcnt / wheel->cpr;
+  float speed = rev * 2.0f * M_PI / wheel->dt;
+  wheel->w = speed;
+}
+
+static inline void tb6612_control(wheel_t *w, int dir_fwd, float duty,
+                                  uint32_t ch, uint32_t arr) {
+
+  if (dir_fwd) {
+    HAL_GPIO_WritePin(w->port1, w->pin1, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(w->port2, w->pin2, GPIO_PIN_RESET);
+  } else {
+    HAL_GPIO_WritePin(w->port1, w->pin1, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(w->port2, w->pin2, GPIO_PIN_SET);
+  }
+  uint32_t pulse = (uint32_t)((arr + 1) * duty);
+  __HAL_TIM_SET_COMPARE(&htim1, ch, pulse);
+}
+
+static inline void set_wheel(wheel_t *wheel, uint32_t ch, uint32_t arr,
+                             float wheel_ref) {
+  float error = w_ref - wheel->w;
+  wheel->integ += wheel->Ki_w * err * wheel->dt;
+
+  float u = wheel->Kp_w * err + wheel->integ;
+
+  int dir = (u >= 0.0f);
+  float duty = fabsf(u);
+
+  if (duty > DUTY_MAX)
+    duty = DUTY_MAX;
+  float dd = duty - wheel->duty_prev;
+  if (dd > DUTY_SLEW)
+    dd = DUTY_SLEW;
+  if (dd < -DUTY_SLEW)
+    dd = -DUTY_SLEW;
+  duty = wheel->duty_prev + dd;
+  wheel->duty_prev = duty;
+
+  // If saturated, reduce integrator
+  if (fabsf(u) > DUTY_MAX)
+    wheel->integ *= 0.98f;
+
+  tb6612_control(wheel, dir, ch, arr);
 }
 /* USER CODE END 0 */
 
@@ -540,21 +605,23 @@ static void MX_GPIO_Init(void) {
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void *argument) {
   /* USER CODE BEGIN 5 */
-  // Start PWM and get values for duty
+  // Start PWM
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_2);
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_3);
   uint32_t arr = __HAL_TIM_GET_AUTORELOAD(&htim1);
-  const float DUTY_MAX = 0.25f;
 
   // IMU data and Attitude control variables
   float a[3] = {0};
   float g[3] = {0};
   float m[3] = {0};
   float tau[3];
-  float error[3];
+  float target_error[3];
   float Kp = 0.005f;
   float Kd = 0.005f;
+  wheel x_wheel = {0};
+  wheel y_wheel = {0};
+  wheel z_wheel = {0};
 
   // Kalman Filter
   float target_q[4] = {1, 0, 0, 0};
@@ -583,10 +650,8 @@ void StartDefaultTask(void *argument) {
     kalman_predict(&k, g, P_est);
     kalman_correction(&k, a, m, P_est);
     g[0] = g[0] - k.b[0], g[1] = g[1] - k.b[1], g[2] = g[2] - k.b[2];
-    attitude_control(k.q, target_q, error, tau, g, Kp, Kd);
+    attitude_control(k.q, target_q, target_error, tau, g, Kp, Kd);
 
-    uint32_t pulse = (uint32_t)((arr + 1) * duty);
-    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_3, pulse);
     osDelay(2);
   }
   /* USER CODE END 5 */
