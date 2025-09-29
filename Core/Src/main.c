@@ -146,13 +146,6 @@ static inline void IMU(float *g[], float *m[], float *a[]) {
   m[0] = mag.x / 16.0f, m[1] = mag.y / 16.0f, m[2] = mag.z / 16.0f;
 }
 
-// Get Pitch, Roll and Yaw from Quat
-static inline float quat_to_yaw(const float q[4]) {
-  float s2 = 2 * (q[0] * q[3] + q[1] * q[2]);
-  float c2 = 1 - 2 * (q[2] * q[2] + q[3] * q[3]);
-  return atan2f(s2, c2);
-}
-
 // Wrap value to -pi, pi for attitude control
 static inline float wrap_pi(float a) {
   while (a <= -M_PI)
@@ -166,22 +159,26 @@ static inline void attitude_error(float q[4], float target_q[4], float error[3],
                                   float tau[3], float g[3], float Kp,
                                   float Kd) {
   float qc[4], qe[4];
-  quat_conj(q, qc);
-  quat_mul(qd, qc, qe);
+  quat_conj(q, qc);     // Find conjugate of current quaternion, conj = inv
+  quat_mul(qd, qc, qe); // Qerror = Qdesired cross Qcurrent^-1
   if (qe[0] < 0) {
     qe[0] = -qe[0];
     qe[1] = -qe[1];
     qe[2] = -qe[2];
     qe[3] = -qe[3];
   }
+  // Convert Qerror to angle axis vector, multiply by 2 to get full angle
   e[0] = 2.0f * qe[1];
   e[1] = 2.0f * qe[2];
   e[2] = 2.0f * qe[3];
 
+  // PD control in X, Y, Z axis
   tau[0] = -Kp * e[0] - Kd * w[0];
   tau[1] = -Kp * e[1] - Kd * w[1];
   tau[2] = -Kp * e[2] - Kd * w[2];
 }
+
+static inline void get_encoder() {}
 
 static inline void wheel_speed(wheel_t *wheel, int enc_count) {
   int dcnt = enc_count - wheel->last;
@@ -207,16 +204,24 @@ static inline void tb6612_control(wheel_t *w, int dir_fwd, float duty,
 
 static inline void set_wheel(wheel_t *wheel, uint32_t ch, uint32_t arr,
                              float wheel_ref) {
-  float error = w_ref - wheel->w;
+  float error = wheel_ref - wheel->w;
+
+  // Keep integral via Riemann Sum
   wheel->integ += wheel->Ki_w * err * wheel->dt;
 
+  // Do PI control for u/torque/duty cycle
   float u = wheel->Kp_w * err + wheel->integ;
 
+  // Find direction
   int dir = (u >= 0.0f);
   float duty = fabsf(u);
 
+  // If duty is too large or needs to increment too much clamp it to avoid
+  // unnecessary stress on the system
   if (duty > DUTY_MAX)
     duty = DUTY_MAX;
+
+  // Find delta duty to ensure duty is not changing too quickly
   float dd = duty - wheel->duty_prev;
   if (dd > DUTY_SLEW)
     dd = DUTY_SLEW;
@@ -225,7 +230,7 @@ static inline void set_wheel(wheel_t *wheel, uint32_t ch, uint32_t arr,
   duty = wheel->duty_prev + dd;
   wheel->duty_prev = duty;
 
-  // If saturated, reduce integrator
+  // Leaky integrator during saturation
   if (fabsf(u) > DUTY_MAX)
     wheel->integ *= 0.98f;
 
@@ -622,6 +627,9 @@ void StartDefaultTask(void *argument) {
   wheel x_wheel = {0};
   wheel y_wheel = {0};
   wheel z_wheel = {0};
+  float enc_x;
+  float enc_y;
+  float enc_z;
 
   // Kalman Filter
   float target_q[4] = {1, 0, 0, 0};
@@ -646,12 +654,20 @@ void StartDefaultTask(void *argument) {
   bno055_set_operation_mode(BNO055_OPERATION_MODE_AMG); // Get Raw A/M/G data
 
   for (;;) {
-    IMU(g, m, a);
-    kalman_predict(&k, g, P_est);
-    kalman_correction(&k, a, m, P_est);
+    IMU(g, m, a);                       // Grab measurement data
+    kalman_predict(&k, g, P_est);       // Kalman filter prediction step
+    kalman_correction(&k, a, m, P_est); // Kalman filter correction step
     g[0] = g[0] - k.b[0], g[1] = g[1] - k.b[1], g[2] = g[2] - k.b[2];
-    attitude_control(k.q, target_q, target_error, tau, g, Kp, Kd);
-
+    attitude_control(k.q, target_q, target_error, tau, g, Kp,
+                     Kd); // Find Tworld of the system via PD control
+    // TODO: Add PI control for wheels and encoders
+    // Read Encoder
+    wheel_speed(&x_wheel, enc_x);
+    wheel_speed(&y_wheel, enc_y);
+    wheel_speed(&z_wheel, enc_z);
+    set_wheel(&x_wheel, 1, arr, tau[0]);
+    set_wheel(&y_wheel, 2, arr, tau[1]);
+    set_wheel(&z_wheel, 3, arr, tau[2]);
     osDelay(2);
   }
   /* USER CODE END 5 */
